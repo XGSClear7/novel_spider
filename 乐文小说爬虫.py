@@ -111,22 +111,21 @@ class PaQu():
             # print(message)
             result = ''
             for i in message:
-                result += i.replace('\xa0\xa0\xa0\xa0', '   ') + '\r\n\n'
+                result += i.replace('\xa0\xa0\xa0\xa0', '').replace('&nbsp;', '') + '\r\n'
             return {title: result}
 
-    def md_w(self, data, file_name='我有药啊[系统]'):
+    def doc_w(self, data, file_name='我有药啊[系统]'):
         """
             创建md文件，并将数据写入md中，后期方便处理数据
         """
         # 拼接路径
-        file_path = os.path.join(self.csv_path, file_name + '.md')
+        file_path = os.path.join(self.csv_path, file_name + '.txt')
         # 写入csv文件
-        with open(file_path, 'a', encoding='utf-8-sig',
-                  newline='') as f:  # file_path:文件名, a:已追加方式写入， encoding:编码方式, newline:定义换行符
+        with open(file_path, 'a', encoding='utf-8-sig') as f:  # file_path:文件名, a:已追加方式写入， encoding:编码方式, newline:定义换行符
             title = list(data.keys())[0]
             txt = data[title]
             # print(title, txt)
-            f.write('### ' + list(data.keys())[0] + '\n')
+            f.write(list(data.keys())[0] + '\r\n')
             f.writelines(txt)
 
 
@@ -164,6 +163,6 @@ if __name__ == '__main__':
         for result in tqdm(download_tpool.map(P.req, title_list)):
             # print(result)
             # 将结果写入csv
-            P.md_w(result, file_name=book_name)
+            P.doc_w(result, file_name=book_name)
             # break
         print('小说下载完成！')
