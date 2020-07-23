@@ -128,41 +128,46 @@ class PaQu():
             f.write(list(data.keys())[0] + '\r\n')
             f.writelines(txt)
 
+    def main(self, book_name=input('请输入您要下载的小说名称：')):
+        # 用户输入要爬取的小说
+        # book_name = input('请输入您要下载的小说名称：')
+        # book_author = input('请输入您要下载的小说作者名称：')
+        # 调用函数获取搜索回的结果列表
+        book_msg = self.search(book_name)
+        # 建立索引方便用户选择小说
+        book_index = 0
+        if not book_msg:
+            print('暂无书籍信息...')
+        else:
+            print('小说索引：\t\t小说名称：\t\t小说作者：')
+            for book in book_msg:
+                book_index += 1
+                book_name = book[0]
+                booke_author = book[1]
+                print(book_index, '\t\t\t', book_name, '\t\t\t', booke_author)
+            # 用索引选择小说
+            index = input('请输入书籍索引选择要下载的书籍（只能选择一本）：')
+            book_msg = book_msg[int(index) - 1]
+            book_url = book_msg[2]
+            book_name = book_msg[0].replace(r'/', '-') + '-' + book_msg[1]
+            # 调用函数获取小说全部章节信息
+            title_list = P.get_title(url=book_url)
+            # print(title_list)
+            # 创建线程池
+            download_tpool = ThreadPoolExecutor(
+                max_workers=64)  # 可以定义做大线程数， max_workers参数 ThreadPoolExecutor(max_workers=8)
+            # 将任务加入到线程池中，大大加快下载速度
+            # 使用map方法是为了阻塞线程，让结果输出的顺序与参数传入的顺序保持一致，不会章节杂乱
+            for result in tqdm(download_tpool.map(self.req, title_list)):
+                # print(result)
+                # 将结果写入csv
+                P.doc_w(result, file_name=book_name)
+                # break
+            print('小说下载完成！')
+
 
 if __name__ == '__main__':
     # 实例化类
     P = PaQu()
-    # 用户输入要爬取的小说
-    book_name = input('请输入您要下载的小说名称：')
-    # book_author = input('请输入您要下载的小说作者名称：')
-    # 调用函数获取搜索回的结果列表
-    book_msg = P.search(book_name)
-    # 建立索引方便用户选择小说
-    book_index = 0
-    if not book_msg:
-        print('暂无书籍信息...')
-    else:
-        print('小说索引：\t\t小说名称：\t\t小说作者：')
-        for book in book_msg:
-            book_index += 1
-            book_name = book[0]
-            booke_author = book[1]
-            print(book_index, '\t\t\t', book_name, '\t\t\t', booke_author)
-        # 用索引选择小说
-        index = input('请输入书籍索引选择要下载的书籍（只能选择一本）：')
-        book_msg = book_msg[int(index)-1]
-        book_url = book_msg[2]
-        book_name = book_msg[0] + '-' + book_msg[1]
-        # 调用函数获取小说全部章节信息
-        title_list = P.get_title(url=book_url)
-        # print(title_list)
-        # 创建线程池
-        download_tpool = ThreadPoolExecutor(max_workers=64) # 可以定义做大线程数， max_workers参数 ThreadPoolExecutor(max_workers=8)
-        # 将任务加入到线程池中，大大加快下载速度
-        # 使用map方法是为了阻塞线程，让结果输出的顺序与参数传入的顺序保持一致，不会章节杂乱
-        for result in tqdm(download_tpool.map(P.req, title_list)):
-            # print(result)
-            # 将结果写入csv
-            P.doc_w(result, file_name=book_name)
-            # break
-        print('小说下载完成！')
+    P.main()
+
